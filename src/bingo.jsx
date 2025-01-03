@@ -1,4 +1,4 @@
-import { Grid, Modal, TextInput, Stack, Button, Container } from '@mantine/core';
+import { Grid, Modal, TextInput, Stack, Button, Container, Select } from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 function TestGrid() {
@@ -72,13 +72,37 @@ function TestGrid() {
     newCells[index] = { 
       name: pokemon.name, 
       sprite: pokemon.sprite, 
-      customText: customText
+      customText: customText,
+      generation: generation
     };
     setCells(newCells);
     setEditingIndex(null);
     setSearchValue('');
     setCustomText('');
   };
+
+  const getGameAbbr = (gameVal) => {
+    switch(gameVal) {
+        case '1':
+            return 'RBY'
+        case '2':
+            return 'GSC'
+        case '3': 
+            return 'RSE'
+        case '4': 
+            return 'DPP'
+        case '5': 
+            return 'BW'
+        case '6': 
+            return 'XY'
+        case '7': 
+            return 'SM'
+        case '8':
+            return 'SWSH'
+        case '9':
+            return 'SV'
+    }
+  }
 
   const filteredPokemon = searchValue.trim().length >= 2
     ? pokemonList.filter(pokemon => 
@@ -112,10 +136,10 @@ function TestGrid() {
                     right: '0',
                     textAlign: 'center',
                     fontSize: '16px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.5)', // semi-transparent white background
+                    backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     padding: '0px',
                   }}>
-                    {cell.customText || cell.name}
+                    {cell.customText || getGameAbbr(cell.generation)}
                   </div>
                 </>     
               )}
@@ -138,11 +162,23 @@ function TestGrid() {
             <Modal.CloseButton />
           </Modal.Header>
           <Modal.Body>
-            <TextInput
-              placeholder="Enter generation (1-5, or leave empty for modern)..."
+            <Select
+              placeholder="Choose game..."
               value={generation}
-              onChange={(e) => setGeneration(e.target.value)}
+              onChange={setGeneration}
+              data={[
+                { value: '1', label: 'Pokemon Red/Blue' },
+                { value: '2', label: 'Pokemon Gold/Silver/Crystal' },
+                { value: '3', label: 'Pokemon Ruby/Sapphire/Emerald' },
+                { value: '4', label: 'Pokemon Diamond/Pearl/Platinum' },
+                { value: '5', label: 'Pokemon Black/White' },
+                { value: '6', label: 'Pokemon X/Y' },
+                { value: '7', label: 'Pokemon Sun/Moon' },
+                { value: '8', label: 'Pokemon Sword/Shield' },
+                { value: '9', label: 'Pokemon Scarlet/Violet' },
+              ]}
               mb="md"
+              clearable
               autoFocus
             />
             <TextInput
