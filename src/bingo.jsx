@@ -3,26 +3,33 @@ import { useState, useEffect } from 'react';
 
 const gameData = [
     {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 0.8},
-    {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 0.6},
-    {value: 'rse', label: 'Pokemon Ruby/Sapphire', abbr: 'RS', zoom: 0.8},
-    {value: 'dpp', label: 'Pokemon Diamond/Pearl', abbr: 'DP', zoom: 1},
-    {value: 'bw', label: 'Pokemon Black/White', abbr: 'BW', zoom: 1},
-    {value: 'xy', label: 'Pokemon X/Y', abbr: 'XY', zoom: 0.8},
-    {value: 'sm', label: 'Pokemon Sun/Moon', abbr: 'SM', zoom: 1.2},
-    {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1},
-    {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1},
     {value: 'ylw', label: 'Pokemon Yellow', abbr: 'Yellow', zoom: 0.8},
+    {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 0.6},
     {value: 'cry', label: 'Pokemon Crystal', abbr: 'Crystal', zoom: 0.6},
+    {value: 'rse', label: 'Pokemon Ruby/Sapphire', abbr: 'RS', zoom: 0.8},
     {value: 'emr', label: 'Pokemon Emerald', abbr: 'Emerald', 'zoom': 0.8},
     {value: 'frlg', label: 'Pokemon FireRed/LeafGreen', abbr: 'FRLG', 'zoom': 0.8},
+    {value: 'dpp', label: 'Pokemon Diamond/Pearl', abbr: 'DP', zoom: 1},
     {value: 'plat', label: 'Pokemon Platinum', abbr: 'Platinum', zoom: 1},
     {value: 'hgss', label: 'Pokemon HeartGold/SoulSilver', abbr: 'HGSS', zoom: 1},
+    {value: 'bw', label: 'Pokemon Black/White', abbr: 'BW', zoom: 1},
     {value: 'b2w2', label: 'Pokemon Black 2/White 2', abbr: 'B2W2', zoom: 1},
-    {value: 'oras', label: 'Pokemon Omega Ruby/Alpha Sapphire', abbr: 'ORAS', zoom: 0.8},
+    {value: 'xy', label: 'Pokemon X/Y', abbr: 'XY', zoom: 0.8},
+    {value: 'oras', label: 'Pokemon Omega Ruby/Alpha Sapphire', abbr: 'ORAS', zoom: 1},
+    {value: 'sm', label: 'Pokemon Sun/Moon', abbr: 'SM', zoom: 1.2},
     {value: 'usum', label: 'Pokemon Ultra Sun/Ultra Moon', abbr: 'USUM', zoom: 1.2},
     {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1},
+    {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1},
     {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1},
-    {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1}
+    {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1},
+    {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1},
+    {value: 'za', label: 'Pokemon Legends: Z-A', abbr: 'Legends Z-A', zoom: 1},
+    {value: 'pogo', label: 'Pokemon GO', abbr: 'POGO', zoom: 1},
+    {value: 'sleep', label: 'Pokemon Sleep', abbr: 'Sleep', zoom: 1},
+    {value: 'col', label: 'Pokemon Colosseum', abbr: 'Colosseum', zoom: 1},
+    {value: 'xd', label: 'Pokemon XD: Gale of Darkness', abbr: 'XD', zoom: 1},
+    {value: 'pmdx', label: 'Pokemon Mystery Dungeon: Rescue Team DX', abbr: 'PMDX', zoom: 1},
+    {value: 'rum', label: 'Pokemon Rumble', abbr: 'Rumble', zoom: 1}
 ]
 
 const getSpritePath = (pokemon, value) => { 
@@ -63,11 +70,13 @@ const getSpritePath = (pokemon, value) => {
             return pokemon.sprites.versions['generation-iv']['heartgold-soulsilver'].front_shiny
         case 'oras':
             return pokemon.sprites.versions['generation-vi']['omegaruby-alphasapphire'].front_shiny
-    }
+        default:
+            return pokemon.sprites['other']['home'].front_shiny
+    } 
 }
 
 function TestGrid() {
-  const [cells, setCells] = useState(Array(25).fill({ name: '', sprite: '', customText: '', generation: '' }));
+  const [cells, setCells] = useState(Array(25).fill({ name: '', sprite: '', customText: '', generation: ''}));
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -175,6 +184,15 @@ useEffect(() => {
               <button
                 onClick={() => {
                     setEditingIndex(index);
+                    if (cells[index].name) {
+                      setSearchValue(cells[index].name.charAt(0).toUpperCase() + cells[index].name.slice(1));
+                      setGeneration(cells[index].generation);
+                      setCustomText(cells[index].customText);
+                    } else {
+                      setSearchValue('');
+                      setGeneration('');
+                      setCustomText('');
+                    }
                 }}
                 style={editButtonStyle}
               >
@@ -187,7 +205,11 @@ useEffect(() => {
 
       <Modal.Root opened={editingIndex !== null} onClose={() => {
         setEditingIndex(null);
-        setGeneration('');
+        if (!cells[editingIndex]?.name) { 
+          setGeneration('');
+          setCustomText('');
+          setSearchValue('');
+        }
       }} centered>
         <Modal.Overlay />
         <Modal.Content>
@@ -198,7 +220,7 @@ useEffect(() => {
           <Modal.Body>
             <Select
               placeholder="Choose game..."
-              value={generation}
+              value={generation || (cells[editingIndex]?.generation || '')}
               onChange={setGeneration}
               data={gameData}
               mb="md"
@@ -209,14 +231,14 @@ useEffect(() => {
             />
             <TextInput
               placeholder="Enter custom text (optional)..."
-              value={customText}
+              value={customText || (cells[editingIndex]?.customText || '')}
               onChange={(e) => setCustomText(e.target.value)}
               mb="md"
             />
             <TextInput
               placeholder="Type at least 2 letters to search Pokémon..."
               disabled={!generation}
-              value={searchValue}
+              value={searchValue || (cells[editingIndex]?.name || '')}
               onChange={(e) => {
                   setSearchValue(e.target.value);
               }}
