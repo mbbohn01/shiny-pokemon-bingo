@@ -1,5 +1,7 @@
-import { Grid, Modal, TextInput, Stack, Button, Container, Select} from '@mantine/core';
+import { Grid, Modal, TextInput, Button, Container, Select} from '@mantine/core';
 import { useState, useEffect } from 'react';
+import './App.css';
+
 
 const gameData = [
     {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 0.8},
@@ -154,7 +156,18 @@ useEffect(() => {
         <Grid.Col span={1} style={headerStyle}>O</Grid.Col>
 
         {cells.map((cell, index) => (
-          <Grid.Col key={index} span={1} style={cellStyle}>
+          <Grid.Col key={index} span={1} className="cell" style={cellStyle} onClick={() => {
+            setEditingIndex(index);
+            if (cells[index].name) {
+              setSearchValue(capitalize(cells[index].name));
+              setGeneration(cells[index].generation);
+              setCustomText(cells[index].customText);
+            } else {
+              setSearchValue('');
+              setGeneration('');
+              setCustomText('');
+            }
+        }}>
             <div style={cellContainerStyle}>
               {cell.name && (
                 <>
@@ -181,23 +194,6 @@ useEffect(() => {
                   </div>
                 </>     
               )}
-              <button
-                onClick={() => {
-                    setEditingIndex(index);
-                    if (cells[index].name) {
-                      setSearchValue(cells[index].name.charAt(0).toUpperCase() + cells[index].name.slice(1));
-                      setGeneration(cells[index].generation);
-                      setCustomText(cells[index].customText);
-                    } else {
-                      setSearchValue('');
-                      setGeneration('');
-                      setCustomText('');
-                    }
-                }}
-                style={editButtonStyle}
-              >
-                ⚙️
-              </button>
             </div>
           </Grid.Col>
         ))}
@@ -274,7 +270,7 @@ useEffect(() => {
                             justifyContent: 'center'
                           }}
                         >
-                          {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
+                          {capitalize(pokemon.name)}
                         </Button>
                       );
                     })}
@@ -306,13 +302,13 @@ const cellStyle = {
   textAlign: 'center',
   border: '1px solid #BDC3C7',
   fontSize: '18px', 
-  cursor: 'default',
-  transition: 'background-color 0.3s',
+  transition: 'background-color 0.1s',
   aspectRatio: '1',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  overflow: 'hidden'
+  overflow: 'hidden',
+  cursor: 'pointer',
 };
 
 const cellContainerStyle = {
@@ -324,19 +320,10 @@ const cellContainerStyle = {
   justifyContent: 'center',
 };
 
-const editButtonStyle = {
-  position: 'absolute',
-  top: '-5px',
-  right: '-2px',
-  padding: '0px',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  opacity: 0.3,
-  transition: 'opacity 0.2s',
-  ':hover': {
-    opacity: 1
-  }
-};
+function capitalize(str) {
+  return str.split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('-');
+}
 
 export default TestGrid;

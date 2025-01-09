@@ -1,0 +1,7 @@
+.cell {
+    background-color: white;
+  }
+  
+  .cell:hover {
+    background-color: lightgray !important;
+  }
