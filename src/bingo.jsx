@@ -1,77 +1,130 @@
-import { Grid, Modal, TextInput, Stack, Button, Container, Select } from '@mantine/core';
+import { Grid, Modal, TextInput, Stack, Button, Container, Select} from '@mantine/core';
 import { useState, useEffect } from 'react';
 
+const gameData = [
+    {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 0.8},
+    {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 0.6},
+    {value: 'rse', label: 'Pokemon Ruby/Sapphire', abbr: 'RS', zoom: 0.8},
+    {value: 'dpp', label: 'Pokemon Diamond/Pearl', abbr: 'DP', zoom: 1},
+    {value: 'bw', label: 'Pokemon Black/White', abbr: 'BW', zoom: 1},
+    {value: 'xy', label: 'Pokemon X/Y', abbr: 'XY', zoom: 0.8},
+    {value: 'sm', label: 'Pokemon Sun/Moon', abbr: 'SM', zoom: 1.2},
+    {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1},
+    {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1},
+    {value: 'ylw', label: 'Pokemon Yellow', abbr: 'Yellow', zoom: 0.8},
+    {value: 'cry', label: 'Pokemon Crystal', abbr: 'Crystal', zoom: 0.6},
+    {value: 'emr', label: 'Pokemon Emerald', abbr: 'Emerald', 'zoom': 0.8},
+    {value: 'frlg', label: 'Pokemon FireRed/LeafGreen', abbr: 'FRLG', 'zoom': 0.8},
+    {value: 'plat', label: 'Pokemon Platinum', abbr: 'Platinum', zoom: 1},
+    {value: 'hgss', label: 'Pokemon HeartGold/SoulSilver', abbr: 'HGSS', zoom: 1},
+    {value: 'b2w2', label: 'Pokemon Black 2/White 2', abbr: 'B2W2', zoom: 1},
+    {value: 'oras', label: 'Pokemon Omega Ruby/Alpha Sapphire', abbr: 'ORAS', zoom: 0.8},
+    {value: 'usum', label: 'Pokemon Ultra Sun/Ultra Moon', abbr: 'USUM', zoom: 1.2},
+    {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1},
+    {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1},
+    {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1}
+]
+
+const getSpritePath = (pokemon, value) => { 
+    switch (value) {
+        case 'rby':
+            return pokemon.sprites.versions['generation-i']['red-blue'].front_default
+        case 'gsc':
+            return pokemon.sprites.versions['generation-ii']['gold'].front_shiny
+        case 'rse':
+            return pokemon.sprites.versions['generation-iii']['ruby-sapphire'].front_shiny
+        case 'dpp':
+            return pokemon.sprites.versions['generation-iv']['diamond-pearl'].front_shiny
+        case 'bw':
+        case 'b2w2':
+            return pokemon.sprites.versions['generation-v']['black-white'].front_shiny
+        case 'xy':
+            return pokemon.sprites.versions['generation-vi']['x-y'].front_shiny
+        case 'sm':
+        case 'usum':
+            return pokemon.sprites.versions['generation-vii']['ultra-sun-ultra-moon'].front_shiny
+        case 'lgpe':
+        case 'ss':
+        case 'sv':
+        case 'bdsp':
+        case 'pla':
+            return pokemon.sprites['other']['home'].front_shiny
+        case 'ylw': 
+            return pokemon.sprites.versions['generation-i']['yellow'].front_default
+        case 'cry': 
+            return pokemon.sprites.versions['generation-ii']['crystal'].front_shiny
+        case 'emr':
+            return pokemon.sprites.versions['generation-iii']['emerald'].front_shiny
+        case 'frlg':
+            return pokemon.sprites.versions['generation-iii']['firered-leafgreen'].front_shiny
+        case 'plat':
+            return pokemon.sprites.versions['generation-iv']['platinum'].front_shiny
+        case 'hgss': 
+            return pokemon.sprites.versions['generation-iv']['heartgold-soulsilver'].front_shiny
+        case 'oras':
+            return pokemon.sprites.versions['generation-vi']['omegaruby-alphasapphire'].front_shiny
+    }
+}
+
 function TestGrid() {
-  const [cells, setCells] = useState(Array(25).fill({ name: '', sprite: '', customText: '' }));
+  const [cells, setCells] = useState(Array(25).fill({ name: '', sprite: '', customText: '', generation: '' }));
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchValue, setSearchValue] = useState('');
-  const [pokemonList, setPokemonList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [customText, setCustomText] = useState('');
   const [generation, setGeneration] = useState('');
+  const [allPokemonData, setAllPokemonData] = useState({});
+  const [isSearchable, setIsSearchable] = useState(false);
 
-  const getGenerationSprite = (detailData, gen) => {
-    switch(gen) {
-      case '1':
-        return detailData.sprites.versions['generation-i']['red-blue'].front_transparent;
-      case '2':
-        return detailData.sprites.versions['generation-ii'].crystal.front_shiny;
-      case '3':
-        return detailData.sprites.versions['generation-iii'].emerald.front_shiny;
-      case '4':
-        return detailData.sprites.versions['generation-iv'].platinum.front_shiny;
-      case '5':
-        return detailData.sprites.versions['generation-v']['black-white'].front_shiny;
-      case '6':
-        return detailData.sprites.versions['generation-vi']['x-y'].front_shiny;
-      case '7':
-        return detailData.sprites.versions['generation-vii']['ultra-sun-ultra-moon'].front_shiny;
-      case '8':
-        return detailData.sprites.versions['generation-viii']['sword-shield'].front_shiny;
-      case '9':
-        return detailData.sprites.other.home.front_shiny;
-    //   default:
-    //     return detailData.sprites.front_shiny;
+useEffect(() => {
+  if (editingIndex !== null) {  // When modal opens
+    const timer = setTimeout(() => {
+      setIsSearchable(true);
+    }, 300);  // Wait for modal animation
+    return () => clearTimeout(timer);
+  } else {  // When modal closes
+    setIsSearchable(false);
+  }
+}, [editingIndex]);
+
+    const getPokemonList = async () => {
+        try {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=10000`)
+            const data = await response.json()
+            const pokemonData = {} 
+            
+            for (const mon of data.results) {
+                const details = await enrichPokemon(mon)
+                pokemonData[mon.name] = details
+            }
+            console.log('Final Pokemon data:', pokemonData)
+            setAllPokemonData(pokemonData)
+            setIsLoading(false) 
+            
+        } catch (error) {
+            console.error('Error fetching Pokemon:', error)
+            setIsLoading(false)
+        }
     }
-  };
+    
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    const enrichPokemon = async (mon) => {
+        await delay(0.1);
+        const response = await fetch(mon.url)
+        const data = await response.json()
+        return data  
+    }
 
   useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const initialResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1');
-        const initialData = await initialResponse.json();
-        const totalPokemon = initialData.count;
-
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${30}`);
-        const data = await response.json();
-        
-        const detailedPokemon = await Promise.all(
-          data.results.map(async (pokemon) => {
-            const detailResponse = await fetch(pokemon.url);
-            const detailData = await detailResponse.json();
-            return {
-              name: pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1),
-              sprite: getGenerationSprite(detailData, generation)
-            };
-          })
-        );
-        
-        setPokemonList(detailedPokemon);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching Pokemon:', error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchPokemon();
-  }, [generation]);
+    getPokemonList();
+  }, []);
 
   const handleCellChange = (index, pokemon) => {
     const newCells = [...cells];
     newCells[index] = { 
       name: pokemon.name, 
-      sprite: pokemon.sprite, 
+      sprite: getSpritePath(pokemon, generation),
       customText: customText,
       generation: generation
     };
@@ -79,36 +132,8 @@ function TestGrid() {
     setEditingIndex(null);
     setSearchValue('');
     setCustomText('');
+    setGeneration('');
   };
-
-  const getGameAbbr = (gameVal) => {
-    switch(gameVal) {
-        case '1':
-            return 'RBY'
-        case '2':
-            return 'GSC'
-        case '3': 
-            return 'RSE'
-        case '4': 
-            return 'DPP'
-        case '5': 
-            return 'BW'
-        case '6': 
-            return 'XY'
-        case '7': 
-            return 'SM'
-        case '8':
-            return 'SWSH'
-        case '9':
-            return 'SV'
-    }
-  }
-
-  const filteredPokemon = searchValue.trim().length >= 2
-    ? pokemonList.filter(pokemon => 
-        pokemon.name.toLowerCase().includes(searchValue.toLowerCase())
-      )
-    : [];
 
   return (
     <Container size="sm">
@@ -127,7 +152,11 @@ function TestGrid() {
                   <img 
                     src={cell.sprite} 
                     alt={cell.name} 
-                    style={{ width: '110%', height: '110%', objectFit: 'contain' }}
+                    style={{ 
+                      width: `${110 * (cell.generation ? gameData.find(g => g.value === cell.generation)?.zoom || 1 : 1)}%`, 
+                      height: `${110 * (cell.generation ? gameData.find(g => g.value === cell.generation)?.zoom || 1 : 1)}%`,
+                      clip: 'auto'
+                    }}
                   />
                   <div style={{ 
                     position: 'absolute',
@@ -139,12 +168,14 @@ function TestGrid() {
                     backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     padding: '0px',
                   }}>
-                    {cell.customText || getGameAbbr(cell.generation)}
+                    {cell.customText || (cell.generation ? gameData.find(g => g.value === cell.generation)?.abbr || '' : '')}
                   </div>
                 </>     
               )}
               <button
-                onClick={() => setEditingIndex(index)}
+                onClick={() => {
+                    setEditingIndex(index);
+                }}
                 style={editButtonStyle}
               >
                 ⚙️
@@ -154,7 +185,10 @@ function TestGrid() {
         ))}
       </Grid>
 
-      <Modal.Root opened={editingIndex !== null} onClose={() => setEditingIndex(null)} centered>
+      <Modal.Root opened={editingIndex !== null} onClose={() => {
+        setEditingIndex(null);
+        setGeneration('');
+      }} centered>
         <Modal.Overlay />
         <Modal.Content>
           <Modal.Header>
@@ -166,20 +200,12 @@ function TestGrid() {
               placeholder="Choose game..."
               value={generation}
               onChange={setGeneration}
-              data={[
-                { value: '1', label: 'Pokemon Red/Blue' },
-                { value: '2', label: 'Pokemon Gold/Silver/Crystal' },
-                { value: '3', label: 'Pokemon Ruby/Sapphire/Emerald' },
-                { value: '4', label: 'Pokemon Diamond/Pearl/Platinum' },
-                { value: '5', label: 'Pokemon Black/White' },
-                { value: '6', label: 'Pokemon X/Y' },
-                { value: '7', label: 'Pokemon Sun/Moon' },
-                { value: '8', label: 'Pokemon Sword/Shield' },
-                { value: '9', label: 'Pokemon Scarlet/Violet' },
-              ]}
+              data={gameData}
               mb="md"
               clearable
               autoFocus
+              required
+              searchable={isSearchable}
             />
             <TextInput
               placeholder="Enter custom text (optional)..."
@@ -189,8 +215,11 @@ function TestGrid() {
             />
             <TextInput
               placeholder="Type at least 2 letters to search Pokémon..."
+              disabled={!generation}
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={(e) => {
+                  setSearchValue(e.target.value);
+              }}
               mb="md"
             />
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
@@ -202,28 +231,33 @@ function TestGrid() {
                 <div style={{ textAlign: 'center', color: 'gray' }}>
                   Type at least 2 letters to see Pokémon options...
                 </div>
-              ) : filteredPokemon.map((pokemon) => (
-                <Button
-                  key={pokemon.name}
-                  variant="light"
-                  onClick={() => handleCellChange(editingIndex, pokemon)}
-                  fullWidth
-                  mb="xs"
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    gap: '10px'
-                  }}
-                >
-                  <img 
-                    src={pokemon.sprite} 
-                    alt={pokemon.name} 
-                    style={{ width: '40px', height: '40px' }}
-                  />
-                  {pokemon.name}
-                </Button>
-              ))}
+              ) : (
+                <>
+                  {Object.entries(allPokemonData)
+                    .filter(([name]) => (
+                      name.includes(searchValue.toLowerCase()) && 
+                      getSpritePath(allPokemonData[name], generation) !== null
+                    ))
+                    .map(([name, pokemon]) => {
+                      return (
+                        <Button
+                          key={name}
+                          variant="light"
+                          onClick={() => handleCellChange(editingIndex, pokemon)}
+                          fullWidth
+                          mb="xs"
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
+                        </Button>
+                      );
+                    })}
+                </>
+              )}
             </div>
           </Modal.Body>
         </Modal.Content>
@@ -255,19 +289,8 @@ const cellStyle = {
   aspectRatio: '1',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center'
-};
-
-const inputStyle = {
-  width: '100%',
-  height: '100%',
-  border: 'none',
-  background: 'none',
-  textAlign: 'center',
-  fontSize: '18px',
-  padding: '0',
-  margin: '0',
-  outline: 'none'
+  justifyContent: 'center',
+  overflow: 'hidden'
 };
 
 const cellContainerStyle = {
@@ -292,11 +315,6 @@ const editButtonStyle = {
   ':hover': {
     opacity: 1
   }
-};
-
-const numberListStyle = {
-  maxHeight: '300px',
-  overflowY: 'auto',
 };
 
 export default TestGrid;
