@@ -1,6 +1,6 @@
 import { Grid, Modal, TextInput, Button, Container, Select} from '@mantine/core';
 import { useState, useEffect } from 'react';
-import './App.css';
+
 
 
 const gameData = [
@@ -78,7 +78,10 @@ const getSpritePath = (pokemon, value) => {
 }
 
 function TestGrid() {
-  const [cells, setCells] = useState(Array(25).fill({ name: '', sprite: '', customText: '', generation: ''}));
+  const [cells, setCells] = useState(() => {
+    const savedCells = localStorage.getItem('pokemonBingoCells');
+    return savedCells ? JSON.parse(savedCells) : Array(25).fill({ name: '', sprite: '', customText: '', generation: ''});
+  });
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -86,6 +89,19 @@ function TestGrid() {
   const [generation, setGeneration] = useState('');
   const [allPokemonData, setAllPokemonData] = useState({});
   const [isSearchable, setIsSearchable] = useState(false);
+
+  useEffect(() => {
+    console.log("test")
+    fetch('/api/pokemon/search/versions.generation-i.red-blue.front_default')
+    .then(res => res.json())
+    .then(data => {
+      console.log(data); // {id: 25, name: "pikachu", sprites: {...}}
+    });
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('pokemonBingoCells', JSON.stringify(cells));
+  }, [cells]);
 
 useEffect(() => {
   if (editingIndex !== null) {  // When modal opens
@@ -121,7 +137,7 @@ useEffect(() => {
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     const enrichPokemon = async (mon) => {
-        await delay(0.1);
+        await delay(0.2);
         const response = await fetch(mon.url)
         const data = await response.json()
         return data  
