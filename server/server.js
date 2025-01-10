@@ -26,21 +26,10 @@ const db = new sqlite.Database(path.join(__dirname, 'pokemon.db'), (err) => {
     }
 });
 
-// Get all Pokemon (basic info)
-app.get('/api/pokemon', (req, res) => {
-    db.all('SELECT id, name FROM pokemon', [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
-});
-
 // Search Pokemon by sprite path
 app.get('/api/pokemon/search/:spritepath', (req, res) => {
     const spritepath = req.params.spritepath.toLowerCase();    
-    db.all("SELECT id, name, sprites FROM pokemon WHERE json_extract(sprites, ?) IS NOT NULL", [`$.${spritepath}`], (err, rows) => {
+    db.all("SELECT id, name FROM pokemon WHERE json_extract(sprites, ?) IS NOT NULL", [`$.${spritepath}`], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -50,9 +39,9 @@ app.get('/api/pokemon/search/:spritepath', (req, res) => {
 });
 
 // Get specific Pokemon by name
-app.get('/api/pokemon/:name', (req, res) => {
-    const name = req.params.name.toLowerCase();
-    db.get('SELECT * FROM pokemon WHERE name = ?', [name], (err, row) => {
+app.get('/api/pokemon/:id', (req, res) => {
+    const id = req.params.id.toLowerCase();
+    db.get('SELECT * FROM pokemon WHERE id = ?', [id], (err, row) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;

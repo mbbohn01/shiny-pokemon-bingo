@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 
 
 const gameData = [
-    {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 0.8},
+    {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 0.8, path: 'versions.generation-i.red-blue.front_default'},
     {value: 'ylw', label: 'Pokemon Yellow', abbr: 'Yellow', zoom: 0.8},
     {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 0.6},
     {value: 'cry', label: 'Pokemon Crystal', abbr: 'Crystal', zoom: 0.6},
@@ -77,6 +77,11 @@ const getSpritePath = (pokemon, value) => {
     } 
 }
 
+const getNestedValue = (obj, path) => {
+  console.log(path.split('.').reduce((current, key) => current?.[key], obj))
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+};
+
 function TestGrid() {
   const [cells, setCells] = useState(() => {
     const savedCells = localStorage.getItem('pokemonBingoCells');
@@ -87,71 +92,53 @@ function TestGrid() {
   const [isLoading, setIsLoading] = useState(true);
   const [customText, setCustomText] = useState('');
   const [generation, setGeneration] = useState('');
-  const [allPokemonData, setAllPokemonData] = useState({});
+  const [currentPokemonData, setCurrentPokemonData] = useState([]);
   const [isSearchable, setIsSearchable] = useState(false);
 
-  useEffect(() => {
-    console.log("test")
-    fetch('/api/pokemon/search/versions.generation-i.red-blue.front_default')
-    .then(res => res.json())
-    .then(data => {
-      console.log(data); // {id: 25, name: "pikachu", sprites: {...}}
-    });
-  }, [])
+  const setGamesSprites = async (spritePath) => {
+    try {
+        const response = await fetch(`/api/pokemon/search/${spritePath}`)
+        const data = await response.json()
+        setCurrentPokemonData(data)
+        setIsLoading(false)
+    } catch (error) {
+        console.error('Error fetching Pokemon:', error)
+        setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem('pokemonBingoCells', JSON.stringify(cells));
   }, [cells]);
 
 useEffect(() => {
-  if (editingIndex !== null) {  // When modal opens
+  if (editingIndex !== null) {  
     const timer = setTimeout(() => {
       setIsSearchable(true);
-    }, 300);  // Wait for modal animation
+    }, 300); 
     return () => clearTimeout(timer);
-  } else {  // When modal closes
+  } else {  
     setIsSearchable(false);
   }
 }, [editingIndex]);
 
-    const getPokemonList = async () => {
-        try {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=10000`)
-            const data = await response.json()
-            const pokemonData = {} 
-            
-            for (const mon of data.results) {
-                const details = await enrichPokemon(mon)
-                pokemonData[mon.name] = details
-            }
-            console.log('Final Pokemon data:', pokemonData)
-            setAllPokemonData(pokemonData)
-            setIsLoading(false) 
-            
-        } catch (error) {
-            console.error('Error fetching Pokemon:', error)
-            setIsLoading(false)
-        }
-    }
-    
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-    const enrichPokemon = async (mon) => {
-        await delay(0.2);
-        const response = await fetch(mon.url)
+  const enrichPokemon = async (id) => {
+    try {
+        const response = await fetch(`/api/pokemon/${id}`)
         const data = await response.json()
-        return data  
+        return data
+    } catch (error) {
+        console.error('Error fetching Pokemon:', error)
     }
+  }
 
-  useEffect(() => {
-    getPokemonList();
-  }, []);
-
-  const handleCellChange = (index, pokemon) => {
+  const handleCellChange = async (index, pokemon) => {
     const newCells = [...cells];
+    const pokemonData = await enrichPokemon(pokemon.id)
+    console.log(pokemonData)
     newCells[index] = { 
       name: pokemon.name, 
-      sprite: getSpritePath(pokemon, generation),
+      sprite: getNestedValue(pokemonData.sprites, gameData.find(g => g.value = generation).path),
       customText: customText,
       generation: generation
     };
@@ -233,7 +220,13 @@ useEffect(() => {
             <Select
               placeholder="Choose game..."
               value={generation || (cells[editingIndex]?.generation || '')}
-              onChange={setGeneration}
+              onChange={(value) => {
+                console.log(value)
+                setGeneration(value);
+                if (value) {
+                  setGamesSprites(gameData.find(g => g.value === value).path);
+                }
+              }}
               data={gameData}
               mb="md"
               clearable
@@ -267,15 +260,12 @@ useEffect(() => {
                 </div>
               ) : (
                 <>
-                  {Object.entries(allPokemonData)
-                    .filter(([name]) => (
-                      name.includes(searchValue.toLowerCase()) && 
-                      getSpritePath(allPokemonData[name], generation) !== null
-                    ))
-                    .map(([name, pokemon]) => {
+                  {currentPokemonData
+                    .filter(pokemon => pokemon.name.toLowerCase().includes(searchValue.toLowerCase()))
+                    .map((pokemon) => {
                       return (
                         <Button
-                          key={name}
+                          key={pokemon.name}
                           variant="light"
                           onClick={() => handleCellChange(editingIndex, pokemon)}
                           fullWidth
