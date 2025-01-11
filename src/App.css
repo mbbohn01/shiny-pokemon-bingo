@@ -1,5 +1,9 @@
+body {
+    background-color: #f2f0ef;
+}
+
 .cell {
-    background-color: white;
+    background-color: #ffffff;
   }
   
   .cell:hover {
