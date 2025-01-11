@@ -1,4 +1,4 @@
-import { Grid, Modal, TextInput, Button, Container, Select} from '@mantine/core';
+import { Grid, Modal, TextInput, Button, Container, Select, Flex} from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 const gameData = [
@@ -103,6 +103,12 @@ useEffect(() => {
     setSearchValue('');
     setCustomText('');
     setGeneration('');
+  };
+
+  const handleClearBoard = () => {
+    if (window.confirm('Are you sure you want to clear the entire board?')) {
+      setCells(Array(25).fill({ name: '', sprite: '', customText: '', generation: ''}));
+    }
   };
 
   return (
@@ -242,6 +248,18 @@ useEffect(() => {
           </Modal.Body>
         </Modal.Content>
       </Modal.Root>
+      <Flex justify="center" mb="md" style={{marginTop: '1.5rem'}}>
+
+            <Button
+        onClick={handleClearBoard}
+        variant="light"
+        color="red"
+        mb="md"  // margin bottom for spacing
+        style={{ float: 'center' }}  // position it to the right
+      >
+        Clear Board
+      </Button>
+      </Flex>
     </Container>
   );
 }

@@ -3,7 +3,7 @@ import { Box } from '@mantine/core';
 
 function Instructions({ text, title }) {
     return (
-        <Box display={{ base: 'none', lg: 'block' }}>
+        <Box display={{ base: 'none', lg: 'block' }} style={{marginTop: '-3rem'}}>
             <div style={instructionStyle}>
                 <div style={bannerStyle}>{title}</div>
                 <div style={{ 
