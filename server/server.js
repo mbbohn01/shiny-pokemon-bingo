@@ -15,10 +15,9 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Database connection - directly in server folder
+// Database connection
 const sqlite = sqlite3.verbose();
 const db = new sqlite.Database(path.join(__dirname, 'pokemon.db'), (err) => {
-
     if (err) {
         console.error('Error connecting to database:', err);
     } else {
@@ -26,7 +25,7 @@ const db = new sqlite.Database(path.join(__dirname, 'pokemon.db'), (err) => {
     }
 });
 
-// Search Pokemon by sprite path
+// Get all pokemon that have a given sprite path
 app.get('/api/pokemon/search/:spritepath', (req, res) => {
     const spritepath = req.params.spritepath.toLowerCase();    
     db.all("SELECT id, name FROM pokemon WHERE json_extract(sprites, ?) IS NOT NULL", [`$.${spritepath}`], (err, rows) => {
@@ -38,7 +37,7 @@ app.get('/api/pokemon/search/:spritepath', (req, res) => {
     });
 });
 
-// Get specific Pokemon by name
+// Receive all data of a Pokemon from PokeAPI id
 app.get('/api/pokemon/:id', (req, res) => {
     const id = req.params.id.toLowerCase();
     db.get('SELECT * FROM pokemon WHERE id = ?', [id], (err, row) => {

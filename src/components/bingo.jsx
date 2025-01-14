@@ -1,10 +1,12 @@
+// Main component for bingo board
+
 import { Grid, Modal, TextInput, Button, Container, Select, Flex} from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 const gameData = [
   {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 1.5, path: 'versions.generation-i.red-blue.front_transparent'},
   {value: 'ylw', label: 'Pokemon Yellow', abbr: 'Yellow', zoom: 1.5, path: 'versions.generation-i.yellow.front_transparent'},
-  {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 1.5, path: 'versions.generation-ii.gold.front_shiny_transparent'},
+  {value: 'gsc', label: 'Pokemon Gold/Silver', abbr: 'GS', zoom: 0.8, path: 'versions.generation-ii.gold.front_shiny'},
   {value: 'cry', label: 'Pokemon Crystal', abbr: 'Crystal', zoom: 1.5, path: 'versions.generation-ii.crystal.front_shiny_transparent'},
   {value: 'rse', label: 'Pokemon Ruby/Sapphire', abbr: 'RS', zoom: 0.8, path: 'versions.generation-iii.ruby-sapphire.front_shiny'},
   {value: 'emr', label: 'Pokemon Emerald', abbr: 'Emerald', zoom: 0.8, path: 'versions.generation-iii.emerald.front_shiny'},
@@ -18,65 +20,71 @@ const gameData = [
   {value: 'oras', label: 'Pokemon Omega Ruby/Alpha Sapphire', abbr: 'ORAS', zoom: 1, path: 'versions.generation-vi.omegaruby-alphasapphire.front_shiny'},
   {value: 'sm', label: 'Pokemon Sun/Moon', abbr: 'SM', zoom: 1.2, path: 'versions.generation-vii.ultra-sun-ultra-moon.front_shiny'},
   {value: 'usum', label: 'Pokemon Ultra Sun/Ultra Moon', abbr: 'USUM', zoom: 1.2, path: 'versions.generation-vii.ultra-sun-ultra-moon.front_shiny'},
-  {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'za', label: 'Pokemon Legends: Z-A', abbr: 'PLZ-A', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'pogo', label: 'Pokemon GO', abbr: 'POGO', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'sleep', label: 'Pokemon Sleep', abbr: 'Sleep', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'col', label: 'Pokemon Colosseum', abbr: 'Colosseum', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'xd', label: 'Pokemon XD: Gale of Darkness', abbr: 'XD', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'pmdx', label: 'Pokemon Mystery Dungeon: Rescue Team DX', abbr: 'PMDX', zoom: 1, path: 'other.home.front_shiny'},
-  {value: 'rum', label: 'Pokemon Rumble', abbr: 'Rumble', zoom: 1, path: 'other.home.front_shiny'}
+  {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'za', label: 'Pokemon Legends: Z-A', abbr: 'PLZ-A', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'pogo', label: 'Pokemon GO', abbr: 'POGO', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'sleep', label: 'Pokemon Sleep', abbr: 'Sleep', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'col', label: 'Pokemon Colosseum', abbr: 'Colosseum', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'xd', label: 'Pokemon XD: Gale of Darkness', abbr: 'XD', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'pmdx', label: 'Pokemon Mystery Dungeon: Rescue Team DX', abbr: 'PMDX', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'rum', label: 'Pokemon Rumble', abbr: 'Rumble', zoom: 1, path: 'other.official-artwork.front_shiny'}
 ]
 
+// Takes in a json path and an object to get the nested value at the path of the object
 const getNestedValue = (obj, path) => {
-  console.log(path.split('.').reduce((current, key) => current?.[key], obj))
   return path.split('.').reduce((current, key) => current?.[key], obj);
 };
 
-function TestGrid() {
+function BingoBoard() {
+  // Saving to local storage
   const [cells, setCells] = useState(() => {
     const savedCells = localStorage.getItem('pokemonBingoCells');
-    return savedCells ? JSON.parse(savedCells) : Array(25).fill({ name: '', sprite: '', customText: '', generation: ''});
+    return savedCells ? JSON.parse(savedCells) : Array(25).fill({ name: '', sprite: '', customText: '', game: ''});
   });
+
   const [editingIndex, setEditingIndex] = useState(null);
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [customText, setCustomText] = useState('');
-  const [generation, setGeneration] = useState('');
+  const [game, setGame] = useState('');
   const [currentPokemonData, setCurrentPokemonData] = useState([]);
   const [isSearchable, setIsSearchable] = useState(false);
 
-  const setGamesSprites = async (spritePath) => {
+  // Function to get all Pokemon that have a sprite at the given sprite path
+  const setAvailablePokemon = async (spritePath) => {
     try {
         const response = await fetch(`/api/pokemon/search/${spritePath}`)
         const data = await response.json()
         setCurrentPokemonData(data)
         setIsLoading(false)
     } catch (error) {
-        console.error('Error fetching Pokemon:', error)
         setIsLoading(false)
     }
   }
 
+  // Reload local storage
   useEffect(() => {
     localStorage.setItem('pokemonBingoCells', JSON.stringify(cells));
   }, [cells]);
 
+
+  // 0.5s delay on the game being searchable, in order to prevent the games appearing before the overall modal
 useEffect(() => {
   if (editingIndex !== null) {  
     const timer = setTimeout(() => {
       setIsSearchable(true);
-    }, 300); 
+    }, 500); 
     return () => clearTimeout(timer);
   } else {  
     setIsSearchable(false);
   }
 }, [editingIndex]);
 
+// Gets all data for Pokemon from given PokeAPI id
   const enrichPokemon = async (id) => {
     try {
         const response = await fetch(`/api/pokemon/${id}`)
@@ -87,30 +95,31 @@ useEffect(() => {
     }
   }
 
+  // Function that updates cells on submit
   const handleCellChange = async (index, pokemon) => {
     const newCells = [...cells];
     const pokemonData = await enrichPokemon(pokemon.id)
-    console.log(pokemonData)
     newCells[index] = { 
       name: pokemon.name, 
-      sprite: getNestedValue(pokemonData.sprites, gameData.find(g => g.value === generation).path),
+      sprite: getNestedValue(pokemonData.sprites, gameData.find(g => g.value === game).path),
       customText: customText,
-      generation: generation
+      game: game
     };
     setCells(newCells);
-    console.log('test')
     setEditingIndex(null);
     setSearchValue('');
     setCustomText('');
-    setGeneration('');
+    setGame('');
   };
 
+  // Function that cnofirms and clears all cells
   const handleClearBoard = () => {
     if (window.confirm('Are you sure you want to clear the entire board?')) {
-      setCells(Array(25).fill({ name: '', sprite: '', customText: '', generation: ''}));
+      setCells(Array(25).fill({ name: '', sprite: '', customText: '', game: ''}));
     }
   };
 
+  // Mantine Grid for Bingo board
   return (
     <Container size="sm">
       <Grid columns={5} style={{ width: '500px', margin: 'auto' }}>
@@ -119,32 +128,34 @@ useEffect(() => {
         <Grid.Col span={1} style={headerStyle}>N</Grid.Col>
         <Grid.Col span={1} style={headerStyle}>G</Grid.Col>
         <Grid.Col span={1} style={headerStyle}>O</Grid.Col>
-
+    {/* Fills in local storage data if found, otherwise creates empty cells */}
         {cells.map((cell, index) => (
           <Grid.Col key={index} span={1} className="cell" style={cellStyle} onClick={() => {
             setEditingIndex(index);
             if (cells[index].name) {
               setSearchValue(capitalize(cells[index].name));
-              setGeneration(cells[index].generation);
+              setGame(cells[index].game);
               setCustomText(cells[index].customText);
             } else {
               setSearchValue('');
-              setGeneration('');
+              setGame('');
               setCustomText('');
             }
         }}>
             <div style={cellContainerStyle}>
               {cell.name && (
                 <>
+                {/* Sets image of cell and adjusts the zoom based on the game */}
                   <img 
                     src={cell.sprite} 
                     alt={cell.name} 
                     style={{ 
-                      width: `${110 * (cell.generation ? gameData.find(g => g.value === cell.generation)?.zoom || 1 : 1)}%`, 
-                      height: `${110 * (cell.generation ? gameData.find(g => g.value === cell.generation)?.zoom || 1 : 1)}%`,
+                      width: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`, 
+                      height: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`,
                       clip: 'auto'
                     }}
                   />
+                {/* Sets and styles text under the image */}
                   <div style={{ 
                     position: 'absolute',
                     bottom: '-5px',
@@ -155,7 +166,7 @@ useEffect(() => {
                     backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     padding: '0px',
                   }}>
-                    {cell.customText || (cell.generation ? gameData.find(g => g.value === cell.generation)?.abbr || '' : '')}
+                    {cell.customText || (cell.game ? gameData.find(g => g.value === cell.game)?.abbr || '' : '')}
                   </div>
                 </>     
               )}
@@ -164,10 +175,11 @@ useEffect(() => {
         ))}
       </Grid>
 
+    {/* Modal for selecting Pokemon */}
       <Modal.Root opened={editingIndex !== null} onClose={() => {
         setEditingIndex(null);
         if (!cells[editingIndex]?.name) { 
-          setGeneration('');
+          setGame('');
           setCustomText('');
           setSearchValue('');
         }
@@ -179,14 +191,14 @@ useEffect(() => {
             <Modal.CloseButton />
           </Modal.Header>
           <Modal.Body>
+          {/* Select dropdown for choosing game - required for Pokemon search */}
             <Select
               placeholder="Choose game..."
-              value={generation || (cells[editingIndex]?.generation || '')}
+              value={game || (cells[editingIndex]?.game || '')}
               onChange={(value) => {
-                console.log(value)
-                setGeneration(value);
+                setGame(value);
                 if (value) {
-                  setGamesSprites(gameData.find(g => g.value === value).path);
+                  setAvailablePokemon(gameData.find(g => g.value === value).path);
                 }
               }}
               data={gameData}
@@ -195,16 +207,19 @@ useEffect(() => {
               autoFocus
               required
               searchable={isSearchable}
+              allowDeselect={false}
             />
+          {/* Optional text input for user to override text in bingo cell */}
             <TextInput
               placeholder="Enter custom text (optional)..."
               value={customText || (cells[editingIndex]?.customText || '')}
               onChange={(e) => setCustomText(e.target.value)}
               mb="md"
             />
+          {/*  Pokemon search input based on the game chosen */}
             <TextInput
               placeholder="Type at least 2 letters to search Pokémon..."
-              disabled={!generation}
+              disabled={!game}
               value={searchValue}
               onChange={(e) => {
                   setSearchValue(e.target.value);
@@ -250,13 +265,12 @@ useEffect(() => {
       </Modal.Root>
       <Flex justify="center" mb="md" style={{marginTop: '1.5rem'}}>
 
-            <Button
+      <Button
         onClick={handleClearBoard}
         variant="light"
         color="red"
-        mb="md"  // margin bottom for spacing
-        style={{ float: 'center' }}  // position it to the right
-      >
+        mb="md"
+        style={{ float: 'center' }}>
         Clear Board
       </Button>
       </Flex>
@@ -264,6 +278,7 @@ useEffect(() => {
   );
 }
 
+// Style objects for elements
 const headerStyle = {
   backgroundColor: '#e87b58',
   color: 'white',
@@ -299,10 +314,11 @@ const cellContainerStyle = {
   justifyContent: 'center',
 };
 
+// Global function for capitalizing Pokemon names
 function capitalize(str) {
   return str.split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('-');
 }
 
-export default TestGrid;
+export default BingoBoard;

@@ -1,10 +1,12 @@
+// Component for textbox (instructions/notes etc.)
+
 import { Box } from '@mantine/core';
 
-
-function Instructions({ text, title }) {
+// Mantine box element
+function Textbox({ text, title }) {
     return (
         <Box display={{ base: 'none', lg: 'block' }} style={{marginTop: '-3rem'}}>
-            <div style={instructionStyle}>
+            <div style={textboxStyle}>
                 <div style={bannerStyle}>{title}</div>
                 <div style={{ 
                     whiteSpace: 'pre-wrap',
@@ -15,7 +17,9 @@ function Instructions({ text, title }) {
         </Box>
     )
 }
-const instructionStyle = {
+
+// Style objects
+const textboxStyle = {
     background: 'white',
     width: '15rem',
     height: '30rem',
@@ -26,16 +30,16 @@ const instructionStyle = {
   };        
 
   const bannerStyle = {
-    background: '#e87b58',  // Same color as border
+    background: '#e87b58', 
     padding: '0.5rem',
     marginBottom: '1rem',
     textAlign: 'center',
-    marginLeft: '-1rem',    // Offset the parent padding
+    marginLeft: '-1rem', 
     marginRight: '-1rem',
-    marginTop: '-1rem',     // Extend to top edge
+    marginTop: '-1rem', 
     color: 'white',
     fontWeight: 'bold',
     borderBottom: '4px solid #f2f0ef'
 };
 
-export default Instructions;
+export default Textbox;

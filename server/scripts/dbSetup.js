@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 const sqlite = sqlite3.verbose();
 
-// Create database file
+// Create database
 const db = new sqlite.Database(path.join(__dirname, '..', 'pokemon.db'), (err) => {
     if (err) {
         console.error('Error creating database:', err);
@@ -32,6 +32,7 @@ db.run(`CREATE TABLE IF NOT EXISTS pokemon (
     fetchPokemonData();
 });
 
+// Get data from PokeAPI
 function fetchPokemonData() {
     https.get('https://pokeapi.co/api/v2/pokemon?limit=10000', (res) => {
         let data = '';
@@ -51,6 +52,7 @@ function fetchPokemonData() {
     });
 }
 
+// Unload data into db
 function processPokemonList(pokemonList) {
     let processed = 0;
     
@@ -75,11 +77,11 @@ function processPokemonList(pokemonList) {
                     const spritesData = {
                         versions: pokemonData.sprites.versions,
                         other: {
-                            home: pokemonData.sprites.other.home
+                            home: pokemonData.sprites.other.home,
+                            'official-artwork': pokemonData.sprites.other['official-artwork']
                         }
                     };
 
-                    // Insert into database
                     db.run(
                         'INSERT OR REPLACE INTO pokemon (id, name, sprites) VALUES (?, ?, ?)',
                         [pokemonData.id, pokemonData.name, JSON.stringify(spritesData)],
