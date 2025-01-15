@@ -2,6 +2,7 @@
 
 import { Grid, Modal, TextInput, Button, Container, Select, Flex} from '@mantine/core';
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 const gameData = [
   {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 1.5, path: 'versions.generation-i.red-blue.front_transparent'},
@@ -57,7 +58,7 @@ function BingoBoard() {
   // Function to get all Pokemon that have a sprite at the given sprite path
   const setAvailablePokemon = async (spritePath) => {
     try {
-        const response = await fetch(`/api/pokemon/search/${spritePath}`)
+        const response = await fetch(`${API_URL}/api/pokemon/search/${spritePath}`)
         const data = await response.json()
         setCurrentPokemonData(data)
         setIsLoading(false)
@@ -87,7 +88,7 @@ useEffect(() => {
 // Gets all data for Pokemon from given PokeAPI id
   const enrichPokemon = async (id) => {
     try {
-        const response = await fetch(`/api/pokemon/${id}`)
+        const response = await fetch(`${API_URL}/api/pokemon/${id}`)
         const data = await response.json()
         return data
     } catch (error) {
