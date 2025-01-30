@@ -122,8 +122,8 @@ useEffect(() => {
 
   // Mantine Grid for Bingo board
   return (
-    <Container size="sm">
-      <Grid columns={5} style={{ width: '500px', margin: 'auto' }}>
+<Container size="sm" style={{ width: '100%', maxWidth: '500px', padding: '0 8px' }}>
+<Grid columns={5} style={{ width: '100%', margin: 'auto' }}> 
         <Grid.Col span={1} style={headerStyle}>B</Grid.Col>
         <Grid.Col span={1} style={headerStyle}>I</Grid.Col>
         <Grid.Col span={1} style={headerStyle}>N</Grid.Col>
@@ -194,6 +194,8 @@ useEffect(() => {
           <Modal.Body>
           {/* Select dropdown for choosing game - required for Pokemon search */}
             <Select
+              maxDropdownHeight={"35vw"}
+              comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
               placeholder="Choose game..."
               value={game || (cells[editingIndex]?.game || '')}
               onChange={(value) => {
