@@ -3,6 +3,8 @@
 import { Grid, Modal, TextInput, Button, Container, Select, Flex} from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { API_URL } from '../config';
+import { Check, X } from 'lucide-react';
+
 
 const gameData = [
   {value: 'rby', label: 'Pokemon Red/Blue/Green', abbr: 'RBG', zoom: 1.5, path: 'versions.generation-i.red-blue.front_transparent'},
@@ -17,16 +19,16 @@ const gameData = [
   {value: 'hgss', label: 'Pokemon HeartGold/SoulSilver', abbr: 'HGSS', zoom: 1, path: 'versions.generation-iv.heartgold-soulsilver.front_shiny'},
   {value: 'bw', label: 'Pokemon Black/White', abbr: 'BW', zoom: 1, path: 'versions.generation-v.black-white.front_shiny'},
   {value: 'b2w2', label: 'Pokemon Black 2/White 2', abbr: 'B2W2', zoom: 1, path: 'versions.generation-v.black-white.front_shiny'},
-  {value: 'xy', label: 'Pokemon X/Y', abbr: 'XY', zoom: 0.8, path: 'versions.generation-vi.x-y.front_shiny'},
+  {value: 'xy', label: 'Pokemon X/Y', abbr: 'XY', zoom: 0.7, path: 'versions.generation-vi.x-y.front_shiny'},
   {value: 'oras', label: 'Pokemon Omega Ruby/Alpha Sapphire', abbr: 'ORAS', zoom: 1, path: 'versions.generation-vi.omegaruby-alphasapphire.front_shiny'},
   {value: 'sm', label: 'Pokemon Sun/Moon', abbr: 'SM', zoom: 1.2, path: 'versions.generation-vii.ultra-sun-ultra-moon.front_shiny'},
   {value: 'usum', label: 'Pokemon Ultra Sun/Ultra Moon', abbr: 'USUM', zoom: 1.2, path: 'versions.generation-vii.ultra-sun-ultra-moon.front_shiny'},
-  {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1, path: 'other.official-artwork.front_shiny'},
-  {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1, path: 'other.official-artwork.front_shiny'},
-  {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1, path: 'other.official-artwork.front_shiny'},
-  {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1, path: 'other.official-artwork.front_shiny'},
-  {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1, path: 'other.official-artwork.front_shiny'},
-  {value: 'za', label: 'Pokemon Legends: Z-A', abbr: 'PLZ-A', zoom: 1, path: 'other.official-artwork.front_shiny'},
+  {value: 'lgpe', label: "Pokemon Let's Go Pikachu/Eevee", abbr: 'LGPE', zoom: 1, path: 'other.sv-art'},
+  {value: 'ss', label: 'Pokemon Sword/Shield', abbr: 'SWSH', zoom: 1, path: 'other.sv-art'},
+  {value: 'bdsp', label: 'Pokemon Brilliant Diamond/Shining Pearl', abbr: 'BDSP', zoom: 1, path: 'sv-art'},
+  {value: 'pla', label: 'Pokemon Legends Arceus', abbr: 'PLA', zoom: 1, path: 'sv-art'},
+  {value: 'sv', label: 'Pokemon Scarlet/Violet', abbr: 'SV', zoom: 1, path: 'other.sv-art'},
+  {value: 'za', label: 'Pokemon Legends: Z-A', abbr: 'PLZ-A', zoom: 1, path: 'other.sv-art'},
   {value: 'pogo', label: 'Pokemon GO', abbr: 'POGO', zoom: 1, path: 'other.official-artwork.front_shiny'},
   {value: 'sleep', label: 'Pokemon Sleep', abbr: 'Sleep', zoom: 1, path: 'other.official-artwork.front_shiny'},
   {value: 'col', label: 'Pokemon Colosseum', abbr: 'Colosseum', zoom: 1, path: 'other.official-artwork.front_shiny'},
@@ -44,7 +46,7 @@ function BingoBoard() {
   // Saving to local storage
   const [cells, setCells] = useState(() => {
     const savedCells = localStorage.getItem('pokemonBingoCells');
-    return savedCells ? JSON.parse(savedCells) : Array(25).fill({ name: '', sprite: '', customText: '', game: ''});
+    return savedCells ? JSON.parse(savedCells) : Array(25).fill({ name: '', sprite: '', customText: '', game: '', completed: false});
   });
 
   const [editingIndex, setEditingIndex] = useState(null);
@@ -120,6 +122,16 @@ useEffect(() => {
     }
   };
 
+  // Function that marks cell as completed
+  const toggleCompleted = (index) => {
+    const newCells = [...cells];
+    newCells[index] = {
+      ...newCells[index],
+      completed: !newCells[index].completed
+    };
+    setCells(newCells);
+  };
+
   // Mantine Grid for Bingo board
   return (
 <Container size="sm" style={{ width: '100%', maxWidth: '500px', padding: '0 8px' }}>
@@ -137,6 +149,7 @@ useEffect(() => {
               setSearchValue(capitalize(cells[index].name));
               setGame(cells[index].game);
               setCustomText(cells[index].customText);
+              setAvailablePokemon(gameData.find(g => g.value === cells[index].game).path);
             } else {
               setSearchValue('');
               setGame('');
@@ -151,11 +164,27 @@ useEffect(() => {
                     src={cell.sprite} 
                     alt={cell.name} 
                     style={{ 
-                      width: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`, 
-                      height: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`,
-                      clip: 'auto'
+                      maxWidth: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`, 
+                      maxHeight: `${110 * (cell.game ? gameData.find(g => g.value === cell.game)?.zoom || 1 : 1)}%`,
+                      width: 'auto',
+                      height: 'auto',
+                      objectFit: 'contain',
+                      clip: 'auto',
+                      opacity: cell.completed ? 0.8 : 1  // Add this line
                     }}
                   />
+                  {cell.completed && (  // Add this overlay
+                    <div style={{
+                      position: 'absolute',
+                      top: -100,
+                      left: -100,
+                      right: -100,
+                      bottom: -100,
+                      backgroundColor: 'rgba(165, 214, 132, 0.2)',
+                      // backgroundColor: 'rgba(128, 128, 128, 0.4)',
+                      zIndex: 1
+                    }}/>
+                  )}
                 {/* Sets and styles text under the image */}
                   <div style={{ 
                     position: 'absolute',
@@ -163,7 +192,7 @@ useEffect(() => {
                     left: '0',
                     right: '0',
                     textAlign: 'center',
-                    fontSize: '16px',
+                    fontSize: 'clamp(5px, 2.7vw, 16px)',
                     backgroundColor: 'rgba(255, 255, 255, 0.5)',
                     padding: '0px',
                   }}>
@@ -192,7 +221,29 @@ useEffect(() => {
             <Modal.CloseButton />
           </Modal.Header>
           <Modal.Body>
+          {/* Button to mark pokemon as caught if pokemon is filled in*/}
+          {cells[editingIndex]?.name && (
+            <Flex justify="center" mb="md">
+              <Button
+                onClick={() => {
+                  toggleCompleted(editingIndex);
+                  setEditingIndex(null);
+                }}
+                variant="filled"
+                color={cells[editingIndex]?.completed ? "red" : "teal"}
+                size="xs"
+              >
+                <Flex align="center" gap="xs">
+                  {cells[editingIndex]?.completed ? (
+                    <X size={16} />) : (<Check size={16} />
+                  )}
+                  {cells[editingIndex]?.completed ? "Unmark as caught" : "Mark as caught"}
+                </Flex>
+              </Button>
+            </Flex>
+          )}
           {/* Select dropdown for choosing game - required for Pokemon search */}
+          
             <Select
               maxDropdownHeight={"35vw"}
               comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false } }}
@@ -215,7 +266,7 @@ useEffect(() => {
           {/* Optional text input for user to override text in bingo cell */}
             <TextInput
               placeholder="Enter custom text (optional)..."
-              value={customText || (cells[editingIndex]?.customText || '')}
+              value={customText}
               onChange={(e) => setCustomText(e.target.value)}
               mb="md"
             />
@@ -262,7 +313,7 @@ useEffect(() => {
                     })}
                 </>
               )}
-            </div>
+            </div>  
           </Modal.Body>
         </Modal.Content>
       </Modal.Root>
