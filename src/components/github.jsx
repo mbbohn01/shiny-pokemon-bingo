@@ -1,5 +1,5 @@
 import React from 'react';
-import githubIcon from '../assets/github-mark.svg'
+import githubIcon from '../../assets/github-mark.svg'
 
 const GitHub = ({ repoUrl }) => {
   return (
