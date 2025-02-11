@@ -28,7 +28,7 @@ function App() {
             <BingoBoard />
           </ModalsProvider>
           <Textbox title = "Notes" 
-          text={`• There will only be sprites available for mainline games Gens 1-7. I hope to add support for more sprites in the future.
+          text={`• There will only be sprites available for mainline games Gens 1-9. I hope to add support for more sprites in the future.
 
     • If you come across any bugs, just message "bohn" on Discord`}/>
         </Flex>
