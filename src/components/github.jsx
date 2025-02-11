@@ -1,4 +1,5 @@
 import React from 'react';
+import githubIcon from '../assets/github-mark.svg'
 
 const GitHub = ({ repoUrl }) => {
   return (
@@ -15,7 +16,7 @@ const GitHub = ({ repoUrl }) => {
       aria-label="View source on GitHub"
     >
       <img 
-        src="/assets/github-mark.svg" 
+        src={githubIcon} 
         alt="GitHub"
         style={{
           width: '30px',
