@@ -9,3 +9,13 @@ body {
   .cell:hover {
     background-color: lightgray !important;
   }
+
+.github-icon {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .github-icon {
+    display: block;
+  }
+}
